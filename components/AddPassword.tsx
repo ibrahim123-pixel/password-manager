@@ -34,7 +34,7 @@ function AddPassword() {
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
+    defaultValues: { 
       websiteUrl: "",
       username: "",
       password: "",
