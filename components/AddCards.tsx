@@ -21,7 +21,6 @@ import { useUser } from "@clerk/nextjs";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
-// ✅ Zod Schema
 const formSchema = z.object({
   cardName: z.string().min(2, { message: "Card name is required" }),
   cardNumber: z
@@ -30,7 +29,6 @@ const formSchema = z.object({
     .regex(/^\d{13,19}$/, { message: "Card number must be 13–19 digits (no spaces)" })
     .refine(
       (value) => {
-        // Luhn algorithm
         let sum = 0;
         let double = false;
         for (let i = value.length - 1; i >= 0; i--) {
@@ -67,7 +65,7 @@ const formSchema = z.object({
 
 function AddCards() {
   const { user } = useUser();
-  const router = useRouter()
+  const router = useRouter();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -85,16 +83,16 @@ function AddCards() {
 
     if (!user) {
       console.error("No user found. Please log in.");
+      toast.error("Please log in to add cards");
       return;
     }
 
     try {
+      // Fixed: Only passing 3 arguments as expected by addCardServer
       await addCardServer(
-        values.cardNumber.replace(/\s+/g, ""), // remove spaces before save
+        values.cardNumber.replace(/\s+/g, ""),
         values.expiryDate,
-        parseInt(values.cvv),
-        values.holderName,
-        user.id // ✅ added back
+        parseInt(values.cvv)
       );
       toast.success("Card Added!");
       form.reset({
@@ -104,10 +102,11 @@ function AddCards() {
         cvv: "",
         holderName: "",
       });
-      router.refresh()
+      router.refresh();
       console.log("Card saved successfully!");
     } catch (err) {
       console.error("Error saving card:", err);
+      toast.error("Failed to add card");
     }
   }
 
